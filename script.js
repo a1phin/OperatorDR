@@ -1,29 +1,67 @@
-// Получаем объект приложения Telegram
-let tg = window.Telegram.WebApp;
+// script.js
 
-// Расширяем приложение на весь экран
+// ⚠️ ВАЖНО: Вставьте сюда ваш HTTPS адрес от ngrok
+const API_BASE_URL = "https://unnibbled-nonbarous-rosana.ngrok-free.dev";
+
+let tg = window.Telegram.WebApp;
 tg.expand();
 
-// Находим наши кнопки
 const yandexBtn = document.getElementById('check-yandex');
 const ozonBtn = document.getElementById('check-ozon');
 const resultsDiv = document.getElementById('results');
+const mainButtons = document.querySelector('.button-group');
 
-// Обработчик нажатия на кнопку "Проверить Яндекс"
+// Функция для отображения загрузки
+function showLoading() {
+    resultsDiv.innerHTML = '<div class="loader"></div>';
+    mainButtons.style.display = 'none'; // Скрываем главные кнопки
+}
+
+// Функция для отображения списка отгрузок
+function displayShipments(shipments, marketplace) {
+    resultsDiv.innerHTML = ''; // Очищаем
+    if (!shipments || shipments.length === 0) {
+        resultsDiv.innerHTML = `<p>Активных отгрузок для ${marketplace} не найдено.</p>`;
+        return;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'shipment-list';
+    shipments.forEach(shipment => {
+        const listItem = document.createElement('li');
+        listItem.className = 'shipment-item';
+        listItem.innerText = `Отгрузка №${shipment.id} от ${shipment.date}`;
+        // В будущем сюда можно добавить обработчик нажатия для получения деталей
+        list.appendChild(listItem);
+    });
+    resultsDiv.appendChild(list);
+}
+
 yandexBtn.addEventListener('click', () => {
-    // Показываем временное сообщение
-    resultsDiv.innerText = "Запрашиваю данные у Яндекса...";
-    // Отправляем данные в Python-бот
-    // Бот получит простую строку 'check_yandex'
-    tg.sendData("check_yandex");
+    showLoading();
+    // Делаем GET-запрос к нашему Python-серверу
+    fetch(`${API_BASE_URL}/get_yandex_shipments`)
+        .then(response => response.json())
+        .then(data => {
+            displayShipments(data.shipments, 'Яндекс');
+        })
+        .catch(error => {
+            console.error('Error fetching Yandex data:', error);
+            resultsDiv.innerHTML = '<p>Ошибка при загрузке данных от Яндекса.</p>';
+        });
 });
 
-// Обработчик нажатия на кнопку "Проверить Ozon"
 ozonBtn.addEventListener('click', () => {
-    resultsDiv.innerText = "Запрашиваю данные у Ozon...";
-    // Бот получит простую строку 'check_ozon'
-    tg.sendData("check_ozon");
+    showLoading();
+    fetch(`${API_BASE_URL}/get_ozon_shipments`)
+        .then(response => response.json())
+        .then(data => {
+            displayShipments(data.shipments, 'Ozon');
+        })
+        .catch(error => {
+            console.error('Error fetching Ozon data:', error);
+            resultsDiv.innerHTML = '<p>Ошибка при загрузке данных от Ozon.</p>';
+        });
 });
 
-// На данном этапе бот будет отвечать в сам чат, а не в это окно.
-// В будущем мы можем настроить отображение данных прямо здесь.
+// Добавим стили для списка и лоадера в CSS
