@@ -1,7 +1,7 @@
 // script.js
 
 // ⚠️ ВАЖНО: Вставьте сюда ваш HTTPS адрес от ngrok
-const API_BASE_URL = "https://unnibbled-nonbarous-rosana.ngrok-free.dev";
+const API_BASE_URL = "https://unnibbled-nonbarbarous-rosana.ngrok-free.dev";
 
 let tg = window.Telegram.WebApp;
 tg.expand();
